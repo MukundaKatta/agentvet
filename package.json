@@ -1,10 +1,13 @@
 {
   "name": "@mukundakatta/agentvet",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Validate LLM-generated tool args before execution. Wrap your tools with a schema; throws ToolArgError with an LLM-friendly retry hint when the model hallucinates wrong types. Zero deps.",
   "type": "module",
   "main": "src/index.js",
   "types": "./src/index.d.ts",
+  "bin": {
+    "agentvet": "src/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./src/index.d.ts",

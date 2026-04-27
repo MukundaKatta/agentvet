@@ -210,6 +210,21 @@ const summarize = vet({
 });
 ```
 
+## CLI
+
+`@mukundakatta/agentvet` ships an `agentvet` binary for one-off validation and lint checks (handy when sanity-checking an LLM tool definition or eyeballing a single tool_use blob):
+
+```bash
+# Validate a JSON args blob against a shape (exit 1 if invalid)
+echo '{"query":42}' | npx -p @mukundakatta/agentvet agentvet validate - \
+  --shape '{"query":"string","limit":"number"}' --name search --pretty
+
+# Lint a tool definition (exits 1 on hard errors like missing input_schema)
+npx -p @mukundakatta/agentvet agentvet lint tool.json --pretty
+```
+
+Output is JSON to stdout (use `--pretty` for indented). When validation fails, the JSON includes a `retry_hint` you can pipe straight back to the model as `tool_result` content with `is_error: true`. Exit code is `0` when valid, `1` when invalid, `2` on usage errors. Run `agentvet --help` for the full subcommand reference.
+
 ## What this is not
 
 - **Not an output validator.** This validates what the LLM passes IN to a tool. For validating what the LLM returns at the end of a generation, use [`@mukundakatta/agentcast`](https://www.npmjs.com/package/@mukundakatta/agentcast).
