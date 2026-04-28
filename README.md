@@ -1,5 +1,11 @@
 # agentvet
 
+[![npm version](https://img.shields.io/npm/v/@mukundakatta/agentvet.svg)](https://www.npmjs.com/package/@mukundakatta/agentvet)
+[![npm downloads](https://img.shields.io/npm/dm/@mukundakatta/agentvet.svg)](https://www.npmjs.com/package/@mukundakatta/agentvet)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Node](https://img.shields.io/node/v/@mukundakatta/agentvet.svg)](https://nodejs.org)
+[![Tests](https://img.shields.io/badge/tests-30%2F30-brightgreen.svg)](./test)
+
 **Validate LLM-generated tool args before execution.** Wrap your tools with a schema; throws `ToolArgError` *before the tool runs* when the model hallucinates wrong types or misses required fields. Carries a structured message you can feed back to the model as a tool_result for next-turn correction. Zero runtime dependencies.
 
 ```bash
@@ -245,7 +251,7 @@ Natural pipeline: **fit** the prompt → **guard** the network → **snap** the 
 
 ## Status
 
-v0.1.0 — initial release. Core API stable. TypeScript types included. 24/24 tests, CI on Node 20/22/24.
+v0.1.2 — tooling polish. Core API stable. TypeScript types included. 30/30 tests, CI on Node 20/22/24.
 
 **v0.2 plans** (post-real-world-feedback):
 - Auto-generate JSON Schema for the model from the same validator (so you don't maintain schemas in two places)
