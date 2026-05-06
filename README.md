@@ -6,6 +6,8 @@
 [![Node](https://img.shields.io/node/v/@mukundakatta/agentvet.svg)](https://nodejs.org)
 [![Tests](https://img.shields.io/badge/tests-30%2F30-brightgreen.svg)](./test)
 
+> 📖 Part of the **[agent-stack](https://dev.to/mukundakatta/i-built-5-tiny-libraries-to-stop-my-ai-agents-from-misbehaving-in-production-3oni)** — 5 tiny libraries to stop AI agents from misbehaving in production.
+
 **Validate LLM-generated tool args before execution.** Wrap your tools with a schema; throws `ToolArgError` *before the tool runs* when the model hallucinates wrong types or misses required fields. Carries a structured message you can feed back to the model as a tool_result for next-turn correction. Zero runtime dependencies.
 
 ```bash
