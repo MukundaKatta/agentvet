@@ -1,0 +1,10 @@
+# Default owner for everything in this repo. Used by GitHub to auto-request
+# review on PRs and to define the contact point for security disclosures.
+* @MukundaKatta
+
+# Tool-arg validation files. Bugs here either accept malformed args
+# (letting bad LLM output reach the wrapped tool function and ultimately
+# the user's database/filesystem/network) or reject good args (causing
+# unnecessary retry loops and provider cost).
+/src/vet.js       @MukundaKatta
+/src/adapters.js  @MukundaKatta
