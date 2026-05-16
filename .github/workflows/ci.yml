@@ -5,19 +5,168 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: Node ${{ matrix.node }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        node: [20, 22, 24]
+        node: ['20', '22', '24']
+        os: [ubuntu-latest]
+        include:
+          - node: '22'
+            os: macos-latest
+          - node: '22'
+            os: windows-latest
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - run: node --version
-      - run: node --test 'test/**/*.test.js'
-      - run: node --test 'examples/**/*.test.js'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Unit tests
+        run: node --test 'test/**/*.test.js'
+      - name: Runnable examples (smoke)
+        run: node --test 'examples/**/*.test.js'
+
+  validation-bypass-smoke:
+    name: validation-bypass smoke
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # The whole pitch of vet() is "the wrapped tool is invoked only with
+      # validated args." This smoke wires up a tool with a tiny shape
+      # schema, calls it with deliberately-wrong args (string field given
+      # a number), and asserts:
+      #   (a) the call throws ToolArgError
+      #   (b) the wrapped function is NOT invoked
+      #
+      # If a refactor ever silently bypasses validation or invokes the
+      # wrapped fn first, CI catches it before release.
+      - name: Assert bad args throw ToolArgError + wrapped fn is not invoked
+        run: |
+          node --input-type=module -e '
+            import { vet, adapters, ToolArgError } from "./src/index.js";
+
+            let wrappedCalled = false;
+            const search = vet({
+              name: "search",
+              schema: adapters.shape({ q: "string", limit: "number?" }),
+              fn: async (args) => { wrappedCalled = true; return { ok: true }; },
+            });
+
+            let threw = false;
+            try {
+              await search({ q: 123 });
+            } catch (e) {
+              if (e instanceof ToolArgError) {
+                threw = true;
+              } else {
+                console.error("Wrong error type:", e);
+                process.exit(1);
+              }
+            }
+
+            if (!threw) {
+              console.error("FAIL: bad args did not throw ToolArgError. Validation was bypassed.");
+              process.exit(1);
+            }
+            if (wrappedCalled) {
+              console.error("FAIL: wrapped fn was invoked despite bad args. Wrapper ordering is wrong.");
+              process.exit(1);
+            }
+            console.log("ok: bad args rejected, wrapped fn not invoked");
+          '
+
+  coverage:
+    name: coverage gate
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Coverage
+        run: npm run test:coverage
+
+  zero-runtime-deps-gate:
+    name: zero runtime deps
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Assert package.json has no runtime dependencies
+        run: |
+          node -e '
+            const pkg = require("./package.json");
+            const deps = pkg.dependencies || {};
+            const keys = Object.keys(deps);
+            if (keys.length > 0) {
+              console.error("agentvet is zero-runtime-dep by design.");
+              console.error("This PR adds: " + keys.join(", "));
+              process.exit(1);
+            }
+          '
+
+  package-smoke:
+    name: npm pack content check
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: npm pack dry-run + content check
+        run: |
+          npm pack --dry-run
+          npm pack --json | node -e '
+            const fs = require("fs");
+            const j = JSON.parse(fs.readFileSync(0, "utf8"));
+            const files = j[0].files.map(f => f.path);
+            const required = [
+              "src/index.js",
+              "src/index.d.ts",
+              "src/cli.js",
+              "src/vet.js",
+              "src/adapters.js",
+              "src/errors.js",
+              "README.md",
+              "LICENSE",
+            ];
+            const missing = required.filter(r => !files.includes(r) && !files.some(f => f.startsWith(r)));
+            if (missing.length) {
+              console.error("missing from tarball:", missing);
+              process.exit(1);
+            }
+            const leaked = files.filter(f => f.startsWith("node_modules/"));
+            if (leaked.length) {
+              console.error("node_modules leaked into tarball:", leaked);
+              process.exit(1);
+            }
+          '
