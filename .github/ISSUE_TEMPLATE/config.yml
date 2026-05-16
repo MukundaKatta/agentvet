@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔴 Validation bypass / wrapper drop (security)
+    url: https://github.com/MukundaKatta/agentvet/security/advisories/new
+    about: If you found a schema + args combination where validation returns ok but args don't actually conform, or a path where vet() invokes the wrapped function without validating first, use private vulnerability reporting.
+  - name: General security policy
+    url: https://github.com/MukundaKatta/agentvet/blob/main/SECURITY.md
+    about: Full threat-model scope and disclosure timeline.
+  - name: Validator bug (zod / valibot / ajv)
+    url: https://zod.dev
+    about: agentvet is BYO-validator. Bugs in the validation logic itself belong upstream.
+  - name: Other agent-stack libraries
+    url: https://github.com/MukundaKatta/agent-stack
+    about: For agentsnap / agentguard / agentcast / agentfit / agenttrace / agentbudget, the canonical landing page lists all six.
