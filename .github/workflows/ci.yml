@@ -38,9 +38,9 @@ jobs:
       - name: Install
         run: npm ci
       - name: Unit tests
-        run: node --test 'test/**/*.test.js'
+        run: npm test
       - name: Runnable examples (smoke)
-        run: node --test 'examples/**/*.test.js'
+        run: npm run test:examples
 
   validation-bypass-smoke:
     name: validation-bypass smoke
