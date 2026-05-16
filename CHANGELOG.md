@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+Production-polish branch (this PR): adds `SECURITY.md` (with validation-bypass / wrapper-drop / prototype-pollution surfaces called out), `CODE_OF_CONDUCT.md`, `CODEOWNERS` flagging `vet.js` + `adapters.js` for extra scrutiny, Dependabot config, issue + PR templates (security routing for bypass reports), release workflow with npm provenance OIDC + zero-deps + validation-bypass smoke, expanded CI (macOS + Windows spot-checks, coverage gate, `npm pack` content check, validation-bypass smoke that asserts a vetted tool rejects bad args BEFORE invoking the wrapped fn). No source changes.
+
 ## [0.1.2] — 2026-04-28
 
 ### Added
